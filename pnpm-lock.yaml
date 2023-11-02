@@ -1,0 +1,18 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+dependencies:
+  esy:
+    specifier: ^0.7.2
+    version: 0.7.2
+
+packages:
+
+  /esy@0.7.2:
+    resolution: {integrity: sha512-l8JktgiCkMk8MB9HaSISzSaSSKX19pHtLsRTymZGHHrzk47GrOQLXmez6OJNSgUh07rfasybABAT6yasppC5Zg==}
+    hasBin: true
+    requiresBuild: true
+    dev: false
