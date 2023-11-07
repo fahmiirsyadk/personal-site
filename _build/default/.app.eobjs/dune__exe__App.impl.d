@@ -1,1 +1,1 @@
-app.ml: Dream Template
+app.ml: Dream Home

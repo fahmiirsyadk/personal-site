@@ -2,11 +2,10 @@ FROM debian:stable-slim as build
 
 RUN apt-get update
 RUN apt-get install -y curl git libpq-dev m4 npm unzip
-RUN curl -fsSL https://bun.sh/install | bash
 
 WORKDIR /build
 
-RUN bun install esy
+RUN npm install esy
 
 # Install dependencies.
 ADD esy.* .

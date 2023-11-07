@@ -1,2 +1,15 @@
-node_modules
-_esy
+# Dune
+_build/
+.merlin
+*.install
+
+# npm
+node_modules/
+
+# esy
+_esy/
+esy.lock
+
+# Editors
+.vscode/
+*.swp
