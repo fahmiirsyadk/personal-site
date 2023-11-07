@@ -1,30 +1,26 @@
-FROM debian:stable-slim as build
+FROM ocaml/opam:alpine as build
 
-RUN apt-get update
-RUN apt-get install -y curl git libpq-dev m4 npm unzip
+# Install system dependencies
+RUN sudo apk add --update libev-dev openssl-dev
 
-WORKDIR /build
+WORKDIR /home/opam
 
-RUN npm install esy
+# Install dependencies
+ADD app.opam app.opam
+RUN opam install . --deps-only
 
-# Install dependencies.
-ADD esy.* .
-RUN [ -f esy.lock ] || node_modules/.bin/esy solve
-RUN node_modules/.bin/esy fetch
-RUN node_modules/.bin/esy build-dependencies
-
-# Build project.
+# Build project
 ADD . .
-RUN node_modules/.bin/esy install
-RUN node_modules/.bin/esy build
+RUN opam exec -- dune build
 
-FROM debian:stable-slim as run
+FROM alpine:3.18.4 as run
 
-RUN apt-get update
-RUN apt-get install -y libev4 libpq5 wget
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb
-RUN dpkg -i libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb
+RUN apk add --update libev
 
-COPY --from=build build/_esy/default/build/default/app.exe /bin/app
+# Copy the built executable
+COPY --from=build /home/opam/_build/default/app.exe /bin/app
+
+# Copy the static files
+COPY static /static
 
 ENTRYPOINT /bin/app
