@@ -6,9 +6,9 @@
 
 (include_subdirs unqualified)
 
-(subdir
- layouts/
- (rule
-  (target default.ml)
-  (action
-   (run %{bin:dream_eml} %{dep:default.eml.ml} --workspace %{workspace_root}))))
+; (subdir
+;  layouts/
+;  (rule
+;   (target default.ml)
+;   (action
+;    (run %{bin:dream_eml} %{dep:default.ml} --workspace %{workspace_root}))))

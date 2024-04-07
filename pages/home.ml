@@ -1,16 +1,12 @@
 let page =
   let open Dream_html in
   let open HTML in
-    html [lang "id"] [
-      head [] [
-        title [] "Fahmiirsyadk" ];
-      body [] [
-        h1 [] [txt "Hello, World!"];
-        p [] [ txt "%s" Sys.ocaml_version ];
-      ]
+    null [
+      h1 [] [txt "Hello, World!"];
+      p [] [ txt "%s" Sys.ocaml_version ];
     ]
 
- let render = Dream_html.respond page
+ let render = Dream_html.respond (Default.base ~titles:"fahmiirsyadk" page)
   (* let open Tyxml.Html in
   Default.base
     ~titles:"fahmiirsyadk"
