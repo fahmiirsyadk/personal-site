@@ -1,9 +1,17 @@
-let ocamlVersion =
-  (* show ocaml version as string *)
-  Sys.ocaml_version |> Printf.sprintf "OCaml %s"
+let page =
+  let open Dream_html in
+  let open HTML in
+    html [lang "id"] [
+      head [] [
+        title [] "Fahmiirsyadk" ];
+      body [] [
+        h1 [] [txt "Hello, World!"];
+        p [] [ txt "%s" Sys.ocaml_version ];
+      ]
+    ]
 
-let render =
-  let open Tyxml.Html in
+ let render = Dream_html.respond page
+  (* let open Tyxml.Html in
   Default.base
     ~titles:"fahmiirsyadk"
     ~description:
@@ -13,4 +21,4 @@ let render =
   main ~a:[ a_class [ "flex items-start justify-center min-h-screen" ] ] 
   [
     h1 ~a:[ a_class [ "text-4xl font-bold text-neutral-900" ] ] [ txt "Hello, World!" ];
-  ]
+  ] *)

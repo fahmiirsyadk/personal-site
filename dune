@@ -1,6 +1,6 @@
 (executable
  (name app)
- (libraries dream tyxml)
+ (libraries dream tyxml dream-html)
  (preprocess
   (pps lwt_ppx)))
 
@@ -12,19 +12,3 @@
   (target default.ml)
   (action
    (run %{bin:dream_eml} %{dep:default.eml.ml} --workspace %{workspace_root}))))
-
-; (subdir
-;  pages/
-;  (rule
-;   (target home.ml)
-;   (action
-;    (run %{bin:dream_eml} %{dep:home.ml} --workspace %{workspace_root})))
-;  (rule
-;   (target academic_users.ml)
-;   (action
-;    (run
-;     %{bin:dream_eml}
-;     %{dep:academic_users.eml}
-;     --workspace
-;     %{workspace_root})))
-; )
