@@ -2,6 +2,10 @@
   "dependencies": {
     "esy": "^0.7.2"
   },
+  "scripts": {
+    "build": "esy",
+    "start": "esy start"
+  },
   "trustedDependencies": [
     "esy"
   ]
