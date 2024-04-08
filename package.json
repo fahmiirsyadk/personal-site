@@ -3,7 +3,8 @@
     "esy": "^0.7.2"
   },
   "scripts": {
-    "prod": "esy install && esy build && esy start"
+    "prod": "esy install && esy build",
+    "start": "esy start"
   },
   "trustedDependencies": [
     "esy"
