@@ -15,6 +15,7 @@ let base ~titles ?description ?cannonical inner =
       meta [ property "og:title"; content "%s" titles ];
       meta [ name "theme-color"; content "#fff" ];
       meta [ name "color-scheme"; content "white" ];
+      script [ src "https://cdn.tailwindcss.com" ] "";
       (match description with
       | Some description ->
           meta [ name "description"; content description ]

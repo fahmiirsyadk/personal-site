@@ -2,11 +2,11 @@ let page =
   let open Dream_html in
   let open HTML in
     null [
-      h1 [] [txt "Hello, World!"];
+      h1 [] [txt "Hello, World! there hellooooo"];
       p [] [ txt "%s" Sys.ocaml_version ];
     ]
 
- let render = Dream_html.respond (Default.base ~titles:"fahmiirsyadk" page)
+ let render = (Default.base ~titles:"fahmiirsyadk" page)
   (* let open Tyxml.Html in
   Default.base
     ~titles:"fahmiirsyadk"

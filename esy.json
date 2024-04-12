@@ -2,9 +2,9 @@
   "dependencies": {
     "@opam/conf-libssl": "3",
     "@opam/dream": "1.0.0~alpha5",
+    "@opam/dream-html": "^3.2.0",
     "@opam/dune": "^3.10",
-    "ocaml": "^5.1.1",
-    "@opam/dream-html": "^3.2.0"
+    "ocaml": "^5.1.1"
   },
   "devDependencies": {
     "@opam/ocaml-lsp-server": "*",
