@@ -34,3 +34,35 @@ let export_to_html routes =
     >>= fun () -> Lwt.return_unit
   in
   Lwt_list.iter_p export_route routes
+
+let read_env_file () =
+  let env_file = ".env" in
+  if Sys.file_exists env_file then
+    let lines =
+      let ic = open_in env_file in
+      let rec read_lines acc =
+        try
+          let line = input_line ic in
+          if String.trim line = "" || String.get line 0 = '#' then
+            read_lines acc
+          else
+            read_lines (line :: acc)
+        with End_of_file ->
+          close_in ic;
+          List.rev acc
+      in
+      read_lines []
+    in
+    lines
+  else
+    []
+
+let is_env_prod =
+  let env_lines = read_env_file () in
+  List.exists
+      (fun line ->
+        match String.split_on_char '=' line with
+        | key :: value :: _ ->
+            String.trim key = "PROD" && String.trim value = "true"
+        | _ -> false)
+        env_lines

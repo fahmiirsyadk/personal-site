@@ -4,6 +4,7 @@ _build/
 *.install
 output/
 .ocamlformat
+.env
 
 # npm
 node_modules/
