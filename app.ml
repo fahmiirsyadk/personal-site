@@ -5,9 +5,9 @@ let run routes =
 let routes = [ ("/", Home.render); ("static", Dream_html.HTML.null []) ]
 
 let main () =
-  if Seele.is_env_prod then
-    Lwt_main.run (Seele.export_to_html routes)
-  else
+  if Seele.is_env_dev then
     run routes
+  else
+    Lwt_main.run (Seele.export_to_html routes)
 
 let () = main ()

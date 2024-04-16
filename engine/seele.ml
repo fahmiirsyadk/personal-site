@@ -10,7 +10,7 @@ let process_route routes =
 ) routes)
 
 let export_to_html routes =
-  let ouputFolder = "output" in
+  let ouputFolder = "dist" in
   let export_route (route, handler) =
     let filename =
       match route with
@@ -57,12 +57,12 @@ let read_env_file () =
   else
     []
 
-let is_env_prod =
+let is_env_dev =
   let env_lines = read_env_file () in
   List.exists
       (fun line ->
         match String.split_on_char '=' line with
         | key :: value :: _ ->
-            String.trim key = "PROD" && String.trim value = "true"
+            String.trim key = "DEV" && String.trim value = "true"
         | _ -> false)
         env_lines
