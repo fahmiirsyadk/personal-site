@@ -3,7 +3,7 @@
     "esy": "^0.7.2"
   },
   "scripts": {
-    "build": "esy && esy start"
+    "build": "esy start"
   },
   "trustedDependencies": [
     "esy"
