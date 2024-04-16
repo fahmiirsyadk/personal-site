@@ -45,7 +45,7 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
       - run: opam install . --deps-only --with-test
       - run: opam exec -- dune build --root .
-      - run: dune exec ./app.exe
+      - run: opam exec -- dune exec ./app.exe
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
