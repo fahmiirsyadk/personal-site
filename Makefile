@@ -5,7 +5,7 @@ all:
 	opam exec -- dune build --root .
 
 .PHONY: deps
-deps: create_switch ## Install development dependencies
+deps: ## Install development dependencies
 	opam install -y ocamlformat ocaml-lsp-server
 	opam install -y --deps-only --with-test --with-doc .
 
@@ -35,4 +35,8 @@ fmt: ## Format the codebase with ocamlformat
 
 .PHONY: watch
 watch: ## Watch for the filesystem and rebuild on every change
-	dune exec -w ./app.exe
+	opam exec -- dune exec -w ./app.exe
+
+.PHONY: prod
+prod: ## Build the project in production mode
+	opam exec -- dune exec ./app.exe

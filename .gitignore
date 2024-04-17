@@ -2,16 +2,9 @@
 _build/
 .merlin
 *.install
-output/
+dist/
 .ocamlformat
 .env
-
-# npm
-node_modules/
-
-# esy
-_esy/
-esy.lock
 
 # Editors
 .vscode/
