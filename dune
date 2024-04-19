@@ -1,6 +1,6 @@
 (executable
  (name app)
- (libraries dream tyxml dream-html)
+ (libraries dream dream-html omd cohttp cohttp-lwt-unix)
  (preprocess
   (pps lwt_ppx)))
 
