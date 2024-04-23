@@ -8,11 +8,16 @@ let run routes ?stop_condition () =
       Dream.run ~interface:"0.0.0.0" ~stop:condition
       @@ Dream.router (Seele.process_route routes)
 
+let dynamic_route request =
+  let%lwt markdown_contents = Seele.load_markdown_file request "data/blog" in
+  let (_, content) = markdown_contents in
+  Dream.html (Seele.markdown_to_html content)
+
 let routes =
   [
     ("/", `Static Home.render);
-    ( "/blog/reborn",
-      `Dynamic (fun _ -> Dream.respond "This is how i rebuilt my site") );
+    ( "/blog/:word",
+      `Dynamic (fun request -> Dream.param request "word" |> dynamic_route));
     ("static", `Exclude (Dream.get "/static/**" @@ Dream.static "static"));
   ]
 

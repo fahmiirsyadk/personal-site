@@ -3,7 +3,7 @@ open Lwt.Infix
 
 type route_type =
   [ `Static of Dream_html.node
-  | `Dynamic of Dream.handler
+  | `Dynamic of Dream.request -> Dream.response Lwt.t
   | `Exclude of Dream.route ]
 
 let fetch_url url =
@@ -63,15 +63,20 @@ let export_to_html routes =
               ~flags:[ Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY ] filename
               (fun channel -> Lwt_io.write channel (Dream_html.to_string node))
             >>= fun () -> Lwt.return_unit
-        | `Dynamic _ ->
-            let content = fetch_url ("http://localhost:8080" ^ route) in
+        | `Dynamic _ -> Lwt.return_unit
+            (* let* content = handler in
+            Lwt_io.with_file ~mode:Output
+              ~flags:[ Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY ] filename
+              (fun channel -> Lwt_io.write channel content)
+            >>= fun () -> Lwt.return_unit *)
+            (* let content = fetch_url ("http://localhost:8080" ^ route) in
             let* code, json = content in
             if code = 200 then
               Lwt_io.with_file ~mode:Output
                 ~flags:[ Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY ] filename
                 (fun channel -> Lwt_io.write channel json)
               >>= fun () -> Lwt.return_unit
-            else Lwt.return_unit
+            else Lwt.return_unit *)
         | `Exclude _ -> Lwt.return_unit)
   in
   Lwt_list.iter_p export_route routes
@@ -105,3 +110,39 @@ let is_env_dev =
           String.trim key = "DEV" && String.trim value = "true"
       | _ -> false)
     env_lines
+
+let markdown_to_html str =
+     let markdown_ast = Omd.of_string str in
+     Omd.to_html markdown_ast
+
+   let load_markdown_files dir =
+     let file_stream = Lwt_unix.files_of_directory dir in
+     let%lwt all_files =
+       Lwt_stream.filter_map
+         (fun file ->
+            if Filename.check_suffix file ".md" then
+              Some (Filename.concat dir file)
+            else
+              None)
+         file_stream
+       |> Lwt_stream.to_list
+     in
+     let%lwt markdown_contents =
+       Lwt_list.map_s
+         (fun file ->
+            let%lwt content = Lwt_io.with_file ~mode:Lwt_io.input file Lwt_io.read in
+            Lwt.return (Filename.chop_extension (Filename.basename file), content))
+         all_files
+     in
+     Lwt.return markdown_contents
+
+  let load_markdown_file filename dir =
+    let file = Filename.concat dir filename ^ ".md" in
+    let%lwt content = Lwt_io.with_file ~mode:Lwt_io.input file Lwt_io.read in
+    Lwt.return (Filename.chop_extension (Filename.basename file), content)
+
+     let print_markdown_contents contents =
+       let print_content (filename, content) =
+         let html_content = markdown_to_html content in
+         (filename, html_content)
+       in List.map print_content contents
