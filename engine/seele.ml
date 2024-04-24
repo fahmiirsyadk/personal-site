@@ -53,34 +53,36 @@ let export_to_html routes =
         let filename = routeFolder ^ "/index.html" in
         match types with
         | `Static node ->
-            let* () = mkdir_p (outputFolder ^ route) in
-            Lwt_io.with_file ~mode:Output
+            let () = Logs.info (fun m -> m "Exporting %s" route) in
+            let* () = mkdir_p routeFolder in
+            Lwt_io.with_file ~mode:Lwt_io.Output
               ~flags:[ Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY ] filename
               (fun channel -> Lwt_io.write channel (Dream_html.to_string node))
             >>= fun () -> Lwt.return_unit
-        | `Dynamic (_, _) ->
-            let param = "reborn" in
-            let route =
-              Str.global_replace (Str.regexp_string ":word") param route
-            in
-            let base_url = "http://localhost:8080" ^ route in
-            let filename = outputFolder ^ route ^ "/index.html" in
-            let* () = mkdir_p (outputFolder ^ route) in
-            let _ = Printf.printf "Base URL: %s\n" base_url in
-            let%lwt content = fetch_url base_url in
-            let code, json = content in
-            if code = 200 then
-              let _ = Printf.printf "Exporting %s\n" filename in
-              let%lwt () =
-                Lwt_io.with_file ~mode:Output
-                  ~flags:[ Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY ] filename
-                  (fun channel -> Lwt_io.write channel json)
-              in
-              Lwt.return_unit
-            else Lwt.return_unit
+        | `Dynamic (_, list_blog) ->
+            Lwt_list.iter_p
+              (fun blog ->
+                let route =
+                  Str.global_replace (Str.regexp_string ":word") blog route
+                in
+                let () = Logs.info (fun m -> m "Exporting %s" route) in
+                let filename = routeFolder ^ "/" ^ blog ^ "/index.html" in
+                let* () = mkdir_p (routeFolder ^ "/" ^ blog) in
+                let base_url = "http://localhost:8080" ^ route in
+                let%lwt code, json = fetch_url base_url in
+                if code = 200 then
+                  Lwt_io.with_file ~mode:Lwt_io.Output
+                    ~flags:[ Unix.O_CREAT; Unix.O_TRUNC; Unix.O_WRONLY ]
+                    filename (fun channel -> Lwt_io.write channel json)
+                  >>= fun () -> Lwt.return_unit
+                else Lwt.return_unit)
+              list_blog
+            >>= fun () -> Lwt.return_unit
         | `Exclude _ -> Lwt.return_unit)
   in
-  Lwt_list.iter_p export_route routes
+  Lwt_list.iter_p export_route routes >>= fun () ->
+  let () = Logs.info (fun m -> m "Done | Exported to %s" outputFolder) in
+  Lwt.return_unit
 
 let read_env_file () =
   let env_file = ".env" in
