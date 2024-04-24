@@ -1,4 +1,7 @@
-# Personal Site Engine
+
+![img](https://c.wallhere.com/photos/9d/e5/Neon_Genesis_Evangelion_Seele_flag-1220722.jpg!d)
+
+# Seele
 
 This file is part of the Personal Site Engine. It contains the implementation of various functions used in the engine, mainly for processing routes and exporting content to HTML files ( SSG ).
 
