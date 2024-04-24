@@ -66,8 +66,8 @@ let export_to_html routes =
                   Str.global_replace (Str.regexp_string ":word") blog route
                 in
                 let () = Logs.info (fun m -> m "Exporting %s" route) in
-                let filename = routeFolder ^ "/" ^ blog ^ "/index.html" in
-                let* () = mkdir_p (routeFolder ^ "/" ^ blog) in
+                let filename = outputFolder ^ "/" ^ route ^ "/index.html" in
+                let* () = mkdir_p (outputFolder ^ route) in
                 let base_url = "http://localhost:8080" ^ route in
                 let%lwt code, json = fetch_url base_url in
                 if code = 200 then
