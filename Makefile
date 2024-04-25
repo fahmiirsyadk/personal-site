@@ -35,8 +35,8 @@ fmt: ## Format the codebase with ocamlformat
 
 .PHONY: watch
 watch: ## Watch for the filesystem and rebuild on every change
-	opam exec -- dune exec -w ./app.exe
+	export ENVIRONMENT=dev && opam exec -- dune exec -w ./app.exe
 
 .PHONY: prod
 prod: ## Build the project in production mode
-	opam exec -- dune exec ./app.exe
+	export ENVIRONMENT=prod && opam exec -- dune exec ./app.exe

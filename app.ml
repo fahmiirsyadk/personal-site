@@ -1,18 +1,18 @@
-let dynamic_route request =
-  let%lwt markdown_contents = Seele.load_markdown_file request "data/blog" in
+let dynamic_markdown request =
+  let%lwt markdown_contents = Seele.Core.load_markdown_file request "data/blog" in
   let _, content = markdown_contents in
-  Dream.html (Seele.markdown_to_html content)
+  Dream.html (Seele.Core.markdown_to_html content)
 
-let list_blog = Seele.list_markdown_files "data/blog"
+let list_blog = Seele.Core.list_markdown_files "data/blog"
 
 let routes =
   [
     ("/", `Static Home.render);
-    ("/about", `Static Home.render);
     ( "/blog/:word",
       `Dynamic
-        ((fun request -> Dream.param request "word" |> dynamic_route), list_blog)
+        ((fun request -> Dream.param request "word" |> dynamic_markdown), list_blog)
     );
+    ("/about", `Static Home.render);
     ("static", `Exclude (Dream.get "/static/**" @@ Dream.static "static"));
   ]
 
@@ -21,11 +21,12 @@ let run routes ?stop_condition () =
   | None ->
       Dream.run ~interface:"0.0.0.0"
       @@ Dream.logger
-      @@ Dream.router (Seele.process_route routes)
+      @@ Dream.router (Seele.Core.process_route routes)
   | Some condition ->
       Dream.run ~interface:"0.0.0.0" ~stop:condition
-      @@ Dream.router (Seele.process_route routes)
+      @@ Dream.router (Seele.Core.process_route routes)
 
 let () =
-  if Seele.is_env_dev then run routes ()
-  else run routes ~stop_condition:(Seele.export_to_html routes) ()
+  match Seele.Config.env with
+  | Seele.Config.Dev -> run routes ()
+  | Seele.Config.Prod -> run routes ~stop_condition:(Seele.export_static routes ()) ()

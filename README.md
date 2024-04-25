@@ -38,21 +38,14 @@ make deps
 ```
 
 #### [ 02 ] **Running**
-1. Create .env file
-```.env
-DEV=true
-```
+1. Run the server
 ```bash
 make watch
 ```
-4. Open **localhost:8080**
+2. Open **localhost:8080**
 
 ### [ 03 ] **Build Production**
-1. Make dev mode disabled
-```.env
-DEV=false
-```
-2. Run build command
+1. Run build command
 ```bash
 make prod
 ```
