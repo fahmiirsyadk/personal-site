@@ -13,7 +13,7 @@ let rec elements =
   let open HTML in
   function
   | [] -> []
-  | x :: xs -> li [] [ a [ href {|/blog/%s|} x ] [ txt "%s" x ] ] :: elements xs
+  | x :: xs -> li [] [ a [ href {|blog/%s|} x ] [ txt "%s" x ] ] :: elements xs
 
 let blog (list_blog: string list) =
   let open Dream_html in
