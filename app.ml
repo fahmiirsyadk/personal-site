@@ -7,7 +7,7 @@ let list_blog = Seele.Core.list_markdown_files "data/blog"
 
 let routes =
   [
-    ("/", `Static Home.render);
+    ("/", `Static (Home.render_list list_blog));
     ( "/blog/:word",
       `Dynamic
         ((fun request -> Dream.param request "word" |> dynamic_markdown), list_blog)
