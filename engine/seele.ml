@@ -1,25 +1,71 @@
+(* core.ml *)
+
 open Lwt.Syntax
 open Lwt.Infix
+
+type metadata = {
+  title : string;
+  excerpt : string;
+  date : string;
+  tags : string list;
+}
 
 module Config = struct
   type env = Dev | Prod
 
   let env =
     match Sys.getenv_opt "ENVIRONMENT" with
-    | Some "dev" -> Dev
     | Some "prod" -> Prod
     | _ -> Dev
 end
 
-module Logger = struct
-  let info msg =
-    Logs.info (fun m -> m "%s" msg)
-
-  let error msg exn =
-    Logs.err (fun m -> m "%s: %s" msg (Printexc.to_string exn))
-end
-
 module Core = struct
+  type entry = { content : string; metadata : metadata option }
+
+  let split_key_value line =
+    match String.split_on_char ':' line with
+    | [key; value] -> Some (String.trim key, String.trim (String.trim value))
+    | _ -> None
+
+  (* Function to parse frontmatter *)
+  let parse_frontmatter content =
+    let lines = String.split_on_char '\n' content in
+    let rec parse_lines acc = function
+      | "---" :: rest -> (List.rev acc, rest)
+      | line :: rest ->
+          (match split_key_value line with
+          | Some kv -> parse_lines (kv :: acc) rest
+          | None -> parse_lines acc rest)
+      | [] -> (List.rev acc, [])
+    in
+    match lines with
+    | "---" :: rest ->
+        let frontmatter, content = parse_lines [] rest in
+        Some (frontmatter, String.trim (String.concat "\n" content))
+    | _ -> None
+
+  (* Function to convert frontmatter to metadata *)
+  let frontmatter_to_metadata frontmatter =
+    let find_value key = List.assoc_opt key frontmatter in
+    {
+      title = Option.value (find_value "title") ~default:"";
+      excerpt = Option.value (find_value "excerpt") ~default:"";
+      date = Option.value (find_value "date") ~default:"";
+      tags =
+        match find_value "tags" with
+        | Some tags ->
+            Str.split (Str.regexp "[ \t]*,[ \t]*") (String.trim tags)
+        | None -> []
+    }
+
+  let parse_entry input =
+    match parse_frontmatter input with
+    | Some (frontmatter, content) ->
+        { content; metadata = Some (frontmatter_to_metadata frontmatter) }
+    | None -> { content = input; metadata = None }
+
+  let store = Hashtbl.create 50
+
   let fetch_url url =
     let open Cohttp in
     let open Cohttp_lwt_unix in
@@ -34,7 +80,7 @@ module Core = struct
       (fun (route, types) ->
         match types with
         | `Static node -> Dream.get route (fun _ -> Dream_html.respond node)
-        | `Dynamic (handler, _) -> Dream.get route handler
+        | `Blog (handler, _) -> Dream.get route handler
         | `Exclude route -> route)
       routes
 
@@ -56,6 +102,23 @@ module Core = struct
           (function
             | Unix.Unix_error (Unix.EEXIST, _, _) -> Lwt.return_unit
             | exn -> Lwt.fail exn)
+
+  let print_store () =
+    Hashtbl.iter
+      (fun key value ->
+        let () = Logs.info (fun m -> m "Key: %s" key) in
+        let () = Logs.info (fun m -> m "Value: %s" value.content) in
+        match value.metadata with
+        | Some md ->
+            let () = Logs.info (fun m -> m "Title: %s" md.title) in
+            let () = Logs.info (fun m -> m "Excerpt: %s" md.excerpt) in
+            let () = Logs.info (fun m -> m "Date: %s" md.date) in
+            let () =
+              Logs.info (fun m -> m "Tags: %s" (String.concat ", " md.tags))
+            in
+            ()
+        | None -> ())
+      store
 
   let export_to_html routes =
     let outputFolder = "dist" in
@@ -79,7 +142,7 @@ module Core = struct
                 (fun channel ->
                   Lwt_io.write channel (Dream_html.to_string node))
               >>= fun () -> Lwt.return_unit
-          | `Dynamic (_, list_blog) ->
+          | `Blog (_, list_blog) ->
               Lwt_list.iter_p
                 (fun blog ->
                   let route =
@@ -104,27 +167,53 @@ module Core = struct
     let () = Logs.info (fun m -> m "Done | Exported to %s" outputFolder) in
     Lwt.return_unit
 
+    let log_metadata md =
+      Printf.printf "Metadata - Title: %s\n" md.title;
+      Printf.printf "Metadata - Excerpt: %s\n" md.excerpt;
+      Printf.printf "Metadata - Date: %s\n" md.date;
+      Printf.printf "Metadata - Tags: %s\n" (String.concat ", " md.tags)
+
+  let init_cache dir =
+    let files =
+      Sys.readdir dir |> Array.to_list
+      |> List.filter (fun file -> Filename.check_suffix file ".md")
+    in
+    let load_file file =
+      let filename = Filename.chop_extension file in
+      let path = Filename.concat dir file in
+      let content = In_channel.with_open_bin path In_channel.input_all in
+      let result = parse_entry content in
+      let metadata =
+        match result.metadata with
+        | Some md -> Some { title = md.title; excerpt = md.excerpt; date = md.date; tags = md.tags }
+        | None -> None
+      in
+      Hashtbl.add store filename { content = result.content; metadata }
+    in
+    List.iter load_file files
+
   let markdown_to_html str =
-    let markdown_ast = Omd.of_string str in
-    Omd.to_html markdown_ast
+    let doc = Cmarkit.Doc.of_string str in
+    let html = Cmarkit_html.of_doc ~safe:false doc in
+    html
 
-  let list_markdown_files dir =
-    Sys.readdir dir |> Array.to_list
-    |> List.filter_map (fun file ->
-           if Filename.check_suffix file ".md" then
-             Some (Filename.chop_extension file)
-           else None)
+  let load_markdown_file filename =
+    try Lwt.return (Hashtbl.find store filename)
+    with Not_found -> Lwt.return { content = ""; metadata = None }
 
-  let load_markdown_file filename dir =
-    let file = Filename.concat dir (filename ^ ".md") in
-    Lwt.catch
-      (fun () ->
-        Lwt_io.with_file ~mode:Lwt_io.input file Lwt_io.read >|= fun content ->
-        (filename, content))
-      (fun _ -> Lwt.return (filename, ""))
-
+  let list_markdown_files () =
+    Hashtbl.fold
+      (fun filename entry acc ->
+        let title =
+          match entry.metadata with Some md -> md.title | None -> filename
+        in
+        (filename, title) :: acc)
+      store []
 end
 
 let export_static routes () =
-  let* () = Core.export_to_html routes in Lwt.return_unit
+  let* () = Core.export_to_html routes in
+  let list_markdown_files  = Core.list_markdown_files () in
 
+  Printf.printf "List markdown files Seele: %s\n" (String.concat ", " (List.map (fun (_, title) -> title) list_markdown_files));
+  Lwt.return_unit

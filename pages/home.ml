@@ -5,7 +5,7 @@ let page =
     [
       h1
         [ class_ "text-4xl font-bold text-red-400 text-center" ]
-        [ txt "Hello, World! %s" Sys.ocaml_version ];
+        [ txt "Hello, There! %s" Sys.ocaml_version ];
     ]
 
 let rec elements =
@@ -13,7 +13,9 @@ let rec elements =
   let open HTML in
   function
   | [] -> []
-  | x :: xs -> li [] [ a [ href {|blog/%s|} x ] [ txt "%s" x ] ] :: elements xs
+  | x :: xs ->
+    li [ ]
+    [ a [ href {|blog/%s|} x ] [ txt "%s" x ] ] :: elements xs
 
 let blog (list_blog: string list) =
   let open Dream_html in
@@ -22,8 +24,11 @@ let blog (list_blog: string list) =
     [ class_ "container mx-auto" ]
     [
       h1 [ class_ "text-4xl font-bold text-red-400 text-center" ] [ txt "Blog" ];
-      ul [] (elements list_blog);
+      h1
+        [ class_ "text-4xl font-bold text-red-400 text-center" ]
+        [ txt "Hello, There! %s" Sys.ocaml_version ];
+      ul [ class_ "text-2xl font-bold text-red-400 text-center mt-16" ] (elements list_blog);
     ]
 
 let render = Default.base ~titles:"fahmiirsyadk" page
-let render_list list_blog = Default.base ~titles:"fahmiirsyadk" (blog list_blog)
+let render_list data = Default.base ~titles:"fahmiirsyadk" (blog data)

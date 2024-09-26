@@ -1,1 +1,9 @@
-(lang dune 3.10)
+(lang dune 3.16)
+
+(dialect
+ (name mlx)
+ (implementation
+  (merlin_reader mlx)
+  (extension mlx)
+  (preprocess
+   (run mlx-pp %{input-file}))))

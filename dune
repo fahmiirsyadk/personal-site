@@ -1,14 +1,7 @@
 (executable
  (name app)
- (libraries dream dream-html omd cohttp cohttp-lwt-unix)
+ (libraries dream html_of_jsx dream-html omd cmarkit cohttp cohttp-lwt-unix yaml re)
  (preprocess
-  (pps lwt_ppx)))
+  (pps lwt_ppx html_of_jsx.ppx)))
 
 (include_subdirs unqualified)
-
-; (subdir
-;  layouts/
-;  (rule
-;   (target default.ml)
-;   (action
-;    (run %{bin:dream_eml} %{dep:default.ml} --workspace %{workspace_root}))))
